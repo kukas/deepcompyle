@@ -47,6 +47,7 @@ from transformers import (
     default_data_collator,
     set_seed,
 )
+from transformers import PreTrainedTokenizerFast
 from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
@@ -69,8 +70,8 @@ class ModelArguments:
     Arguments pertaining to which model/config/tokenizer we are going to fine-tune from.
     """
 
-    model_name_or_path: str = field(
-        metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
+    model_name_or_path: Optional[str] = field(
+        default=None, metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
     )
     config_name: Optional[str] = field(
         default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
@@ -399,23 +400,34 @@ def main():
         token=model_args.token,
         trust_remote_code=model_args.trust_remote_code,
     )
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
-        cache_dir=model_args.cache_dir,
-        use_fast=model_args.use_fast_tokenizer,
-        revision=model_args.model_revision,
-        token=model_args.token,
-        trust_remote_code=model_args.trust_remote_code,
-    )
-    model = AutoModelForSeq2SeqLM.from_pretrained(
-        model_args.model_name_or_path,
-        from_tf=bool(".ckpt" in model_args.model_name_or_path),
-        config=config,
-        cache_dir=model_args.cache_dir,
-        revision=model_args.model_revision,
-        token=model_args.token,
-        trust_remote_code=model_args.trust_remote_code,
-    )
+    # tokenizer = AutoTokenizer.from_pretrained(
+    #     model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
+    #     cache_dir=model_args.cache_dir,
+    #     use_fast=model_args.use_fast_tokenizer,
+    #     revision=model_args.model_revision,
+    #     token=model_args.token,
+    #     trust_remote_code=model_args.trust_remote_code,
+    # )
+    
+    tokenizer = PreTrainedTokenizerFast(tokenizer_file=model_args.tokenizer_name)
+    tokenizer.pad_token = "[PAD]"
+    print("tokenizer.pad_token_id",tokenizer.pad_token_id)
+
+
+    model = AutoModelForSeq2SeqLM.from_config(config, trust_remote_code=model_args.trust_remote_code)
+    n_params = sum({p.data_ptr(): p.numel() for p in model.parameters()}.values())
+    logger.info(f"Training new model from scratch - Total size={n_params/2**20:.2f}M params")
+
+
+    # model = AutoModelForSeq2SeqLM.from_pretrained(
+    #     model_args.model_name_or_path,
+    #     from_tf=bool(".ckpt" in model_args.model_name_or_path),
+    #     config=config,
+    #     cache_dir=model_args.cache_dir,
+    #     revision=model_args.model_revision,
+    #     token=model_args.token,
+    #     trust_remote_code=model_args.trust_remote_code,
+    # )
 
     # We resize the embeddings only when necessary to avoid index errors. If you are creating a model from scratch
     # on a small vocab and want a smaller embedding size, remove this test.
