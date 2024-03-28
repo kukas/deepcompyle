@@ -18,11 +18,12 @@ print(alphabet, file=open("alphabet.txt", "w"))
 
 from glob import glob
 import os
+from tqdm import tqdm
 
-path = "../data/codeparrot-clean-train/compiled-3.8.16"
-outdir = "../data/processed/codeparrot-clean-train/compiled-3.8.16"
+path = "../data/codeparrot-clean-train/compiled-3.8.18"
+outdir = "../data/processed/codeparrot-clean-train/compiled-3.8.18"
 os.makedirs(outdir, exist_ok=True)
-for pyc in glob("../data/codeparrot-clean-train/compiled-3.8.16/*.pyc"):
+for pyc in tqdm(glob(path+"/*.pyc")):
     filename = os.path.basename(pyc)
     out_path = os.path.join(outdir, filename+".txt")
     with open(pyc, "rb") as f, open(out_path, "w") as out:
