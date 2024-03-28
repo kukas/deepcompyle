@@ -1,0 +1,12 @@
+python run_translation.py \
+    --model_name_or_path ../models/bart-tiny-lr1e-4 \
+    --tokenizer_name ../tokenizers/bpe_combined_ByteLevel_8000vocab_10000subset.json \
+    --output_dir  ../models/bart-tiny-lr1e-4 \
+    --train_file ../data/jsonlines/train.json \
+    --test_file ../data/jsonlines/valid.json \
+    --source_lang bytecode \
+    --target_lang code \
+    --do_predict \
+    --generation_max_length 1024 \
+    --generation_num_beams 4 \
+    --predict_with_generate
