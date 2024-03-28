@@ -12,6 +12,7 @@ elif processing == "Metaspace":
     tokenizer.pre_tokenizer = pre_tokenizers.Metaspace()
     tokenizer.decoder = decoders.Metaspace()
 
+tokenizer.post_processor = processors.TemplateProcessing(single="[BOS] $A [EOS]", special_tokens=[("[BOS]", 1), ("[EOS]", 2)])
 # tokenizer.pre_tokenizer = Split(pattern=r'\w+|\s', behavior='isolated')
 vocab_size = 8000
 trainer = BpeTrainer(
@@ -19,13 +20,13 @@ trainer = BpeTrainer(
     max_token_length=16,
     initial_alphabet=pre_tokenizers.ByteLevel.alphabet(),
     # limit_alphabet=350,
-    special_tokens=["<PAD>", "<BOS>", "<EOS>"],
+    special_tokens=["[PAD]", "[BOS]", "[EOS]"],
 )
 
-subset = 1000
+subset = 10000
 from glob import glob
 from random import shuffle
-binary_files = glob("../data/processed/codeparrot-clean-train/compiled-3.8.16/*.txt")
+binary_files = glob("../data/processed/codeparrot-clean-train/compiled-3.8.18/*.txt")
 shuffle(binary_files)
 binary_files = binary_files[:subset]
 code_files = glob("../data/codeparrot-clean-train/original_code/*.py")
